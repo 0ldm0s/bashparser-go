@@ -131,10 +131,12 @@ func findCommandNode(node *TsNode, parent *TsNode) *TsNode {
 // ExtractEnvVars 提取命令前缀环境变量赋值（对齐 parser.ts extractEnvVars：
 // command 节点下收集 variable_assignment，遇 command_name/word 停）。
 func ExtractEnvVars(commandNode *TsNode) []string {
+	// 上游对非 command 节点/缺失节点返回 []（空数组恒存在）
 	if commandNode == nil || commandNode.Type != "command" {
-		return nil
+		return []string{}
 	}
-	var envVars []string
+	// 初始化为空切片（非 nil）——与上游恒为数组一致（JSON 序列化 []）
+	envVars := []string{}
 	for _, child := range commandNode.Children {
 		if child.Type == "variable_assignment" {
 			envVars = append(envVars, child.Text)
