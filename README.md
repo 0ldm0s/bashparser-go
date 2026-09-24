@@ -81,3 +81,7 @@ bash 语法组合空间无限，未测输入（JS/Go 正则语义差异、Unicod
    本库用结构体快照，无此限制。
 
 来源与设计文档：eva-go 仓库 `docs/bash解析器移植与互拍方案.md`。
+
+## 许可
+
+LGPL-3.0，详见 [LICENSE](LICENSE)。
