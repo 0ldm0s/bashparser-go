@@ -1,0 +1,137 @@
+{"input":"echo hi"}
+{"input":"ls -la /tmp"}
+{"input":"echo hello world"}
+{"input":"echo 'single quoted'"}
+{"input":"echo \"double quoted\""}
+{"input":"cat file | grep foo | wc -l"}
+{"input":"echo a && echo b"}
+{"input":"echo a || echo b"}
+{"input":"echo a; echo b"}
+{"input":"# just a comment"}
+{"input":"echo hi # trailing comment"}
+{"input":"GIT_EDITOR=x git commit"}
+{"input":"echo $HOME $?"}
+{"input":"echo $(echo sub)"}
+{"input":"cat <<EOF\nheredoc body\nEOF"}
+{"input":"printf '%s\\n' a b"}
+{"input":"echo 中文参数测试"}
+{"input":"cmd 2>/dev/null"}
+{"input":"echo a \\\n b"}
+{"input":"X=1 B=2 env"}
+{"input":"FOO=bar"}
+{"input":"echo 'a'\"b\"c$d"}
+{"input":"if grep -q x f; then echo yes; else echo no; fi"}
+{"input":"if true; then echo a; elif false; then echo b; else echo c; fi"}
+{"input":"while read line; do echo $line; done < f"}
+{"input":"until false; do break; done"}
+{"input":"for f in a b c; do echo $f; done"}
+{"input":"for f; do echo $f; done"}
+{"input":"select v in a b; do echo $v; done"}
+{"input":"for ((i=0; i<5; i++)); do echo $i; done"}
+{"input":"case $x in a) echo a;; b|c) echo bc;; *) echo other;; esac"}
+{"input":"case $x in\n  a) echo a ;;\n  *) ;;\nesac"}
+{"input":"case $x in (-o) echo x ;; esac"}
+{"input":"case $y in *'foo'*) echo q;; esac"}
+{"input":"function greet() { echo hi; }"}
+{"input":"greet() { echo hi; }"}
+{"input":"export PATH=/usr/bin LANG=C"}
+{"input":"declare -a arr=(one two three)"}
+{"input":"local x=1 y"}
+{"input":"readonly RO=const"}
+{"input":"unset FOO BAR"}
+{"input":"unset -v FOO"}
+{"input":"[ -f /tmp/x ] && echo yes"}
+{"input":"[[ -f /tmp/x && -d /tmp ]]"}
+{"input":"[[ ! \"x\" =~ ^y$ ]]", "note": "regex RHS"}
+{"input":"[[ $a == foo* ]]"}
+{"input":"[[ $a != @(a|b) ]]"}
+{"input":"[[ 3 -lt 10 ]]"}
+{"input":"echo $((1 + 2 * 3))"}
+{"input":"echo $((x++, y--))"}
+{"input":"((i = 0, j = 5))"}
+{"input":"echo ${USER}"}
+{"input":"echo ${#USER}"}
+{"input":"echo ${USER:-default}"}
+{"input":"echo ${PATH//:/\\n}"}
+{"input":"echo ${var:1:3}"}
+{"input":"echo ${!indirect}"}
+{"input":"echo ${arr[@]}"}
+{"input":"echo ${arr[*]}"}
+{"input":"echo ${a[1+2]}"}
+{"input":"echo `date`"}
+{"input":"echo pre`cmd`post"}
+{"input":"echo {a,b,c}"}
+{"input":"echo {1..10}"}
+{"input":"echo {}"}
+{"input":"echo {o[k]}"}
+{"input":"diff <(sort a) <(sort b)"}
+{"input":"tee >(gzip > f.gz)"}
+{"input":"cat <<< herestring"}
+{"input":"cmd &>all.log"}
+{"input":"cmd &>>append.log"}
+{"input":"cmd >| forced.txt"}
+{"input":"cmd 3< input.txt"}
+{"input":"exec 2>&1"}
+{"input":"cmd 2>&-"}
+{"input":"cat <&0"}
+{"input":"echo 一二三 🎌 emoji"}
+{"input":"echo tab\there"}
+{"input":"VAR=$(seq 3 | tail -1)"}
+{"input":"echo \"nested $(echo \"deep\") inside\""}
+{"input":"echo \"mix $VAR and `cmd` here\""}
+{"input":"x=--help; cmd $x"}
+{"input":"echo one two; echo three & echo four"}
+{"input":"sleep 5 &"}
+{"input":"(cd /tmp && ls)"}
+{"input":"{ echo a; echo b; }"}
+{"input":"time ls"}
+{"input":"nice -n 5 cmd"}
+{"input":"! grep -q x f && echo missing"}
+{"input":"grep x f || ! echo found"}
+{"input":"unset 'a[$(id)]'"}
+{"input":"echo =(process)"}
+{"input":"echo *.(png|jpg)"}
+{"input":"echo [[:lower:]]"}
+{"input":"ARR=(a b c); echo ${ARR[0]}"}
+{"input":"i=0; ((i+=3)); echo $i"}
+{"input":"n=5; ((n = n - 1)); echo $n"}
+{"input":"echo ${v-'emp'}"}
+{"input":"echo ${v?'err'}"}
+{"input":"echo ${v+'set'}"}
+{"input":"echo ${v=assign}"}
+{"input":"echo ${var#prefix}"}
+{"input":"echo ${var##a*c}"}
+{"input":"echo ${var%suffix}"}
+{"input":"echo ${var%%'*'}"}
+{"input":"echo ${var^}"}
+{"input":"echo ${var,}"}
+{"input":"echo ${var@U}"}
+{"input":"echo $'ansi\\tc'"}
+{"input":"echo $\"localized\""}
+{"input":"echo ${!}"}
+{"input":"echo ${!#}"}
+{"input":"echo ${var: -2}"}
+{"input":"cat <<\"QUOTED\"\n$not_expanded `also_here`\nQUOTED"}
+{"input":"cat <<-INDENT\n\ttabbed body\n\tINDENT"}
+{"input":"cat <<EOF && echo after\nbody\nEOF"}
+{"input":"newins <<-EOF - org.freedesktop.service\nbody\nEOF"}
+{"input":"echo unterminated \"quote"}
+{"input":"echo lone-backslash \\"}
+{"input":"2>/dev/null echo redirected-first"}
+{"input":"cmd >> $HOME/.bash_history"}
+{"input":"echo `echo nested `more``"}
+{"input":"if [ -d .git ]; then git status; fi"}
+{"input":"[[ \"$x\" =~ ^[0-9]+$ ]] && echo num"}
+{"input":"for i in $(seq 1 3); do echo item-$i; done"}
+{"input":"function f { echo body; }"}
+{"input":"f() (subshell body)"}
+{"input":"echo a |& b"}
+{"input":"case x in\na|b|c) echo abc;;\n*([0-9])) echo digits;;\nesac"}
+{"input":"echo ${!prefix*}"}
+{"input":"git log --pretty=format:'%h %s' -5"}
+{"input":"awk '{print $1}' f"}
+{"input":"sed 's/foo/bar/g' f"}
+{"input":"find . -name '*.go' -type f"}
+{"input":"tar -czf archive.tar.gz --exclude='.git' ."}
+{"input":"while IFS= read -r line; do printf '%s\\n' \"$line\"; done < file"}
+{"input":"echo done"}
