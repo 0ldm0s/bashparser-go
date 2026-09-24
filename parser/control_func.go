@@ -196,7 +196,7 @@ func parseFunction(p *ParseState, fnTok Token) *TsNode {
 }
 
 // parseDeclaration 声明命令 export/declare/typeset/readonly/local
-//（对齐 parseDeclaration）
+// （对齐 parseDeclaration）
 func parseDeclaration(p *ParseState, kwTok Token) *TsNode {
 	kw := leaf(p, kwTok.Value, kwTok)
 	kids := []*TsNode{kw}

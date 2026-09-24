@@ -97,7 +97,7 @@ func parseArithTernary(p *ParseState, stop string, mode arithMode) *TsNode {
 }
 
 // scanArithOp 扫描下一个算术二元操作符；返回 [文本, 长度] 或 nil
-//（对齐 scanArithOp）
+// （对齐 scanArithOp）
 func scanArithOp(p *ParseState) (string, int, bool) {
 	c := peek(p.L, 0)
 	c1 := peek(p.L, 1)
@@ -299,7 +299,7 @@ func parseArithPostfix(p *ParseState, stop string, mode arithMode) *TsNode {
 
 // parseArithPrimary 算术主元（对齐 parseArithPrimary）：
 // 括号/双引号/$展开/数字（含 0x 十六进制与 BASE#DIGITS）/标识符
-//（assign 模式的赋值与下标）
+// （assign 模式的赋值与下标）
 func parseArithPrimary(p *ParseState, stop string, mode arithMode) *TsNode {
 	skipBlanks(p.L)
 	if isArithStop(p, stop) {

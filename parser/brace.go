@@ -70,7 +70,7 @@ func tryParseBraceExpr(p *ParseState) *TsNode {
 }
 
 // tryParseBraceLikeCat {a,b,c} 或 {} → 按 tree-sitter 方式切为词片段
-//（对齐 tryParseBraceLikeCat）
+// （对齐 tryParseBraceLikeCat）
 func tryParseBraceLikeCat(p *ParseState) []*TsNode {
 	if peek(p.L, 0) != '{' {
 		return nil

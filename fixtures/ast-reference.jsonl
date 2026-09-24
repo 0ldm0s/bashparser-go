@@ -1,0 +1,79 @@
+{"input":"echo \u0001x","parse":{"kind":"too-complex","reason":"Contains control characters"},"semantics":null}
+{"input":"echo  x","parse":{"kind":"too-complex","reason":"Contains Unicode whitespace"},"semantics":null}
+{"input":"echo foo\\ bar","parse":{"kind":"too-complex","reason":"Contains backslash-escaped whitespace"},"semantics":null}
+{"input":"echo ~[x]","parse":{"kind":"too-complex","reason":"Contains zsh ~[ dynamic directory syntax"},"semantics":null}
+{"input":"echo =curl","parse":{"kind":"too-complex","reason":"Contains zsh =cmd equals expansion"},"semantics":null}
+{"input":"echo {a'}',b}","parse":{"kind":"too-complex","reason":"Contains brace with quote character (expansion obfuscation)"},"semantics":null}
+{"input":"echo hello","parse":{"kind":"simple","commands":[{"argv":["echo","hello"],"envVars":[],"redirects":[],"text":"echo hello"}]},"semantics":{"ok":true}}
+{"input":"echo a; echo b","parse":{"kind":"simple","commands":[{"argv":["echo","a"],"envVars":[],"redirects":[],"text":"echo a"},{"argv":["echo","b"],"envVars":[],"redirects":[],"text":"echo b"}]},"semantics":{"ok":true}}
+{"input":"FOO=1 BAR=2 echo baz","parse":{"kind":"simple","commands":[{"argv":["echo","baz"],"envVars":[{"name":"FOO","value":"1"},{"name":"BAR","value":"2"}],"redirects":[],"text":"FOO=1 BAR=2 echo baz"}]},"semantics":{"ok":true}}
+{"input":"VAR=x && cmd $VAR","parse":{"kind":"simple","commands":[{"argv":["cmd","x"],"envVars":[],"redirects":[],"text":"cmd x"}]},"semantics":{"ok":true}}
+{"input":"VAR=/etc && rm $VAR","parse":{"kind":"simple","commands":[{"argv":["rm","/etc"],"envVars":[],"redirects":[],"text":"rm /etc"}]},"semantics":{"ok":true}}
+{"input":"VAR=\"-rf /\" && rm $VAR","parse":{"kind":"too-complex","reason":"Contains simple_expansion","nodeType":"simple_expansion"},"semantics":null}
+{"input":"V=\"\" && $V eval x","parse":{"kind":"too-complex","reason":"Contains simple_expansion","nodeType":"simple_expansion"},"semantics":null}
+{"input":"true || FLAG=--dry-run && cmd $FLAG","parse":{"kind":"too-complex","reason":"Contains simple_expansion","nodeType":"simple_expansion"},"semantics":null}
+{"input":"A=x && B=y | C=z && D=w","parse":{"kind":"simple","commands":[]},"semantics":{"ok":true}}
+{"input":"for i in a b; do echo $i; done","parse":{"kind":"too-complex","reason":"Contains simple_expansion","nodeType":"simple_expansion"},"semantics":null}
+{"input":"for i in /etc/passwd; do rm $i; done","parse":{"kind":"too-complex","reason":"Contains simple_expansion","nodeType":"simple_expansion"},"semantics":null}
+{"input":"if true; then T=safe; fi && rm $T","parse":{"kind":"too-complex","reason":"Contains simple_expansion","nodeType":"simple_expansion"},"semantics":null}
+{"input":"while read V; do echo \"$V\"; done < f","parse":{"kind":"too-complex","reason":"Contains while_statement","nodeType":"while_statement"},"semantics":null}
+{"input":"V=/tmp && if true || read V; then cat \"/tmp/$V\"; fi","parse":{"kind":"too-complex","reason":"'read V' in condition may not execute (||/pipeline/subshell); cannot prove it overwrites tracked literal '/tmp'","nodeType":"if_statement"},"semantics":null}
+{"input":"(echo sub; X=1) && echo $X","parse":{"kind":"too-complex","reason":"Unhandled node type: ;","nodeType":";"},"semantics":null}
+{"input":"[[ -f x && ! -d y ]]","parse":{"kind":"simple","commands":[{"argv":["[[","-f","x","&&","!","-d","y"],"envVars":[],"redirects":[],"text":"[[ -f x && ! -d y ]]"}]},"semantics":{"ok":true}}
+{"input":"[[ 'a[$(id)]' -eq 0 ]]","parse":{"kind":"simple","commands":[{"argv":["[[","a[$(id)]","-eq","0"],"envVars":[],"redirects":[],"text":"[[ 'a[$(id)]' -eq 0 ]]"}]},"semantics":{"ok":false,"reason":"'[[ ... -eq ... ]]' operand contains array subscript — bash arithmetically evaluates $(cmd) in subscripts"}}
+{"input":"test -v \"a[$(id)]\"","parse":{"kind":"simple","commands":[{"argv":["id"],"envVars":[],"redirects":[],"text":"id"},{"argv":["test","-v","a[__CMDSUB_OUTPUT__]"],"envVars":[],"redirects":[],"text":"test -v \"a[$(id)]\""}]},"semantics":{"ok":false,"reason":"'test -v' operand contains array subscript — bash evaluates $(cmd) in subscripts"}}
+{"input":"printf -v 'a[$(id)]' x","parse":{"kind":"simple","commands":[{"argv":["printf","-v","a[$(id)]","x"],"envVars":[],"redirects":[],"text":"printf -v 'a[$(id)]' x"}]},"semantics":{"ok":false,"reason":"'printf -v' operand contains array subscript — bash evaluates $(cmd) in subscripts"}}
+{"input":"read 'a[$(id)]'","parse":{"kind":"simple","commands":[{"argv":["read","a[$(id)]"],"envVars":[],"redirects":[],"text":"read 'a[$(id)]'"}]},"semantics":{"ok":false,"reason":"'read' positional NAME 'a[$(id)]' contains array subscript — bash evaluates $(cmd) in subscripts"}}
+{"input":"read -p '[hint] ' var","parse":{"kind":"simple","commands":[{"argv":["read","-p","[hint] ","var"],"envVars":[],"redirects":[],"text":"read -p '[hint] ' var"}]},"semantics":{"ok":true}}
+{"input":"export FOO=bar BAZ","parse":{"kind":"simple","commands":[{"argv":["export","FOO=bar","BAZ"],"envVars":[],"redirects":[],"text":"export FOO=bar BAZ"}]},"semantics":{"ok":true}}
+{"input":"declare -n X=Y","parse":{"kind":"too-complex","reason":"declare flag -n changes assignment semantics (nameref/integer/array)","nodeType":"declaration_command"},"semantics":null}
+{"input":"declare -i X='a[$(id)]'","parse":{"kind":"too-complex","reason":"declare flag -i changes assignment semantics (nameref/integer/array)","nodeType":"declaration_command"},"semantics":null}
+{"input":"declare 'x[$(id)]=val'","parse":{"kind":"too-complex","reason":"declare positional 'x[$(id)]=val' contains array subscript — bash evaluates $(cmd) in subscripts","nodeType":"declaration_command"},"semantics":null}
+{"input":"IFS=: && rm $PATH","parse":{"kind":"too-complex","reason":"IFS assignment changes word-splitting — cannot model statically","nodeType":"variable_assignment"},"semantics":null}
+{"input":"PS4='$(id)' && set -x","parse":{"kind":"too-complex","reason":"PS4 value outside safe charset — only ${VAR} refs and [A-Za-z0-9 _+:.=/[]-] allowed","nodeType":"variable_assignment"},"semantics":null}
+{"input":"PS4='+${BASH_SOURCE}:${LINENO}: '","parse":{"kind":"simple","commands":[]},"semantics":{"ok":true}}
+{"input":"VAR=~/x && cd $VAR","parse":{"kind":"too-complex","reason":"Tilde in assignment value — bash may expand at assignment time","nodeType":"variable_assignment"},"semantics":null}
+{"input":"1VAR=x && cmd","parse":{"kind":"simple","commands":[{"argv":["1VAR=x"],"envVars":[],"redirects":[],"text":"1VAR=x"},{"argv":["cmd"],"envVars":[],"redirects":[],"text":"cmd"}]},"semantics":{"ok":true}}
+{"input":"echo $((1+2*3))","parse":{"kind":"simple","commands":[{"argv":["echo","$((1+2*3))"],"envVars":[],"redirects":[],"text":"echo $((1+2*3))"}]},"semantics":{"ok":true}}
+{"input":"echo $((x+1))","parse":{"kind":"too-complex","reason":"Arithmetic expansion references variable or non-literal: x","nodeType":"arithmetic_expansion"},"semantics":null}
+{"input":"echo $((0x1f))","parse":{"kind":"simple","commands":[{"argv":["echo","$((0x1f))"],"envVars":[],"redirects":[],"text":"echo $((0x1f))"}]},"semantics":{"ok":true}}
+{"input":"echo $((10#5))","parse":{"kind":"simple","commands":[{"argv":["echo","$((10#5))"],"envVars":[],"redirects":[],"text":"echo $((10#5))"}]},"semantics":{"ok":true}}
+{"input":"let \"x=a[$(id)]\"","parse":{"kind":"simple","commands":[{"argv":["id"],"envVars":[],"redirects":[],"text":"id"},{"argv":["let","x=a[__CMDSUB_OUTPUT__]"],"envVars":[],"redirects":[],"text":"let \"x=a[$(id)]\""}]},"semantics":{"ok":false,"reason":"'let' evaluates arguments as shell code"}}
+{"input":"echo \"$(cmd)\"","parse":{"kind":"too-complex","reason":"Unhandled node type: string","nodeType":"string"},"semantics":null}
+{"input":"echo \"pre: $(cmd)\"","parse":{"kind":"simple","commands":[{"argv":["cmd"],"envVars":[],"redirects":[],"text":"cmd"},{"argv":["echo","pre: __CMDSUB_OUTPUT__"],"envVars":[],"redirects":[],"text":"echo \"pre: $(cmd)\""}]},"semantics":{"ok":true}}
+{"input":"cd $(echo /etc)","parse":{"kind":"too-complex","reason":"Contains command_substitution","nodeType":"command_substitution"},"semantics":null}
+{"input":"echo $(git rev-parse HEAD)","parse":{"kind":"too-complex","reason":"Contains command_substitution","nodeType":"command_substitution"},"semantics":null}
+{"input":"NOW=$(date) && jq --arg now \"$NOW\" .","parse":{"kind":"too-complex","reason":"Unhandled node type: string","nodeType":"string"},"semantics":null}
+{"input":"cat <<'EOF'\nbody\nEOF","parse":{"kind":"simple","commands":[{"argv":["cat"],"envVars":[],"redirects":[],"text":"cat"}]},"semantics":{"ok":true}}
+{"input":"cat <<EOF\n${DANGER}\nEOF","parse":{"kind":"too-complex","reason":"Heredoc with unquoted delimiter undergoes shell expansion","nodeType":"heredoc_redirect"},"semantics":null}
+{"input":"echo \"$(cat <<'EOF'\n/etc/passwd\nEOF)\"","parse":{"kind":"simple","commands":[{"argv":["echo",""],"envVars":[],"redirects":[],"text":"echo ''"}]},"semantics":{"ok":true}}
+{"input":"eval \"rm -rf /\"","parse":{"kind":"simple","commands":[{"argv":["eval","rm -rf /"],"envVars":[],"redirects":[],"text":"eval \"rm -rf /\""}]},"semantics":{"ok":false,"reason":"'eval' evaluates arguments as shell code"}}
+{"input":"command -v foo","parse":{"kind":"simple","commands":[{"argv":["command","-v","foo"],"envVars":[],"redirects":[],"text":"command -v foo"}]},"semantics":{"ok":true}}
+{"input":"command foo","parse":{"kind":"simple","commands":[{"argv":["command","foo"],"envVars":[],"redirects":[],"text":"command foo"}]},"semantics":{"ok":false,"reason":"'command' evaluates arguments as shell code"}}
+{"input":"fc -l","parse":{"kind":"simple","commands":[{"argv":["fc","-l"],"envVars":[],"redirects":[],"text":"fc -l"}]},"semantics":{"ok":true}}
+{"input":"fc -s x=y","parse":{"kind":"simple","commands":[{"argv":["fc","-s","x=y"],"envVars":[],"redirects":[],"text":"fc -s x=y"}]},"semantics":{"ok":false,"reason":"'fc' evaluates arguments as shell code"}}
+{"input":"compgen -c","parse":{"kind":"simple","commands":[{"argv":["compgen","-c"],"envVars":[],"redirects":[],"text":"compgen -c"}]},"semantics":{"ok":true}}
+{"input":"compgen -C cmd","parse":{"kind":"simple","commands":[{"argv":["compgen","-C","cmd"],"envVars":[],"redirects":[],"text":"compgen -C cmd"}]},"semantics":{"ok":false,"reason":"'compgen' evaluates arguments as shell code"}}
+{"input":"zmodload zsh/zpty","parse":{"kind":"simple","commands":[{"argv":["zmodload","zsh/zpty"],"envVars":[],"redirects":[],"text":"zmodload zsh/zpty"}]},"semantics":{"ok":false,"reason":"Zsh builtin 'zmodload' can bypass security checks"}}
+{"input":"jq \"system(1)\"","parse":{"kind":"simple","commands":[{"argv":["jq","system(1)"],"envVars":[],"redirects":[],"text":"jq \"system(1)\""}]},"semantics":{"ok":false,"reason":"jq command contains system() function which executes arbitrary commands"}}
+{"input":"jq --from-file f","parse":{"kind":"simple","commands":[{"argv":["jq","--from-file","f"],"envVars":[],"redirects":[],"text":"jq --from-file f"}]},"semantics":{"ok":false,"reason":"jq command contains dangerous flags that could execute code or read arbitrary files"}}
+{"input":"cat /proc/self/environ","parse":{"kind":"simple","commands":[{"argv":["cat","/proc/self/environ"],"envVars":[],"redirects":[],"text":"cat /proc/self/environ"}]},"semantics":{"ok":false,"reason":"Accesses /proc/*/environ which may expose secrets"}}
+{"input":"cat < /proc/self/environ","parse":{"kind":"simple","commands":[{"argv":["cat"],"envVars":[],"redirects":[{"op":"<","target":"/proc/self/environ"}],"text":"cat"}]},"semantics":{"ok":false,"reason":"Accesses /proc/*/environ which may expose secrets"}}
+{"input":"nohup eval \"x\"","parse":{"kind":"simple","commands":[{"argv":["nohup","eval","x"],"envVars":[],"redirects":[],"text":"nohup eval \"x\""}]},"semantics":{"ok":false,"reason":"'eval' evaluates arguments as shell code"}}
+{"input":"timeout 5 eval \"x\"","parse":{"kind":"simple","commands":[{"argv":["timeout","5","eval","x"],"envVars":[],"redirects":[],"text":"timeout 5 eval \"x\""}]},"semantics":{"ok":false,"reason":"'eval' evaluates arguments as shell code"}}
+{"input":"timeout -k 5 10 eval \"x\"","parse":{"kind":"simple","commands":[{"argv":["timeout","-k","5","10","eval","x"],"envVars":[],"redirects":[],"text":"timeout -k 5 10 eval \"x\""}]},"semantics":{"ok":false,"reason":"'eval' evaluates arguments as shell code"}}
+{"input":"timeout --unknown-flag eval x","parse":{"kind":"simple","commands":[{"argv":["timeout","--unknown-flag","eval","x"],"envVars":[],"redirects":[],"text":"timeout --unknown-flag eval x"}]},"semantics":{"ok":false,"reason":"timeout with --unknown-flag flag cannot be statically analyzed"}}
+{"input":"timeout .5 eval \"x\"","parse":{"kind":"simple","commands":[{"argv":["timeout",".5","eval","x"],"envVars":[],"redirects":[],"text":"timeout .5 eval \"x\""}]},"semantics":{"ok":false,"reason":"timeout duration '.5' cannot be statically analyzed"}}
+{"input":"nice -n 5 jq \"system(1)\"","parse":{"kind":"simple","commands":[{"argv":["nice","-n","5","jq","system(1)"],"envVars":[],"redirects":[],"text":"nice -n 5 jq \"system(1)\""}]},"semantics":{"ok":false,"reason":"jq command contains system() function which executes arbitrary commands"}}
+{"input":"nice $((0-5)) jq x","parse":{"kind":"simple","commands":[{"argv":["nice","$((0-5))","jq","x"],"envVars":[],"redirects":[],"text":"nice $((0-5)) jq x"}]},"semantics":{"ok":false,"reason":"nice argument '$((0-5))' contains expansion — cannot statically determine wrapped command"}}
+{"input":"env -S \"cmd\" x","parse":{"kind":"simple","commands":[{"argv":["env","-S","cmd","x"],"envVars":[],"redirects":[],"text":"env -S \"cmd\" x"}]},"semantics":{"ok":false,"reason":"env with -S flag cannot be statically analyzed"}}
+{"input":"env FOO=1 ls","parse":{"kind":"simple","commands":[{"argv":["env","FOO=1","ls"],"envVars":[],"redirects":[],"text":"env FOO=1 ls"}]},"semantics":{"ok":true}}
+{"input":"stdbuf -o0 eval x","parse":{"kind":"simple","commands":[{"argv":["stdbuf","-o0","eval","x"],"envVars":[],"redirects":[],"text":"stdbuf -o0 eval x"}]},"semantics":{"ok":false,"reason":"'eval' evaluates arguments as shell code"}}
+{"input":"stdbuf --unknown eval x","parse":{"kind":"simple","commands":[{"argv":["stdbuf","--unknown","eval","x"],"envVars":[],"redirects":[],"text":"stdbuf --unknown eval x"}]},"semantics":{"ok":false,"reason":"stdbuf with --unknown flag cannot be statically analyzed"}}
+{"input":"echo 10#5","parse":{"kind":"simple","commands":[{"argv":["echo","10#5"],"envVars":[],"redirects":[],"text":"echo 10#5"}]},"semantics":{"ok":true}}
+{"input":"echo 10#$(id)","parse":{"kind":"too-complex","reason":"Number node contains expansion (NN# arithmetic base syntax)","nodeType":"command_substitution"},"semantics":null}
+{"input":"find . -exec ls \\;","parse":{"kind":"simple","commands":[{"argv":["find",".","-exec","ls",";"],"envVars":[],"redirects":[],"text":"find . -exec ls \\;"}]},"semantics":{"ok":true}}
+{"input":"echo \" \"","parse":{"kind":"too-complex","reason":"Unhandled node type: string","nodeType":"string"},"semantics":null}
+{"input":"echo \"\"","parse":{"kind":"simple","commands":[{"argv":["echo",""],"envVars":[],"redirects":[],"text":"echo \"\""}]},"semantics":{"ok":true}}
+{"input":"echo \"$HOME\"","parse":{"kind":"too-complex","reason":"Unhandled node type: string","nodeType":"string"},"semantics":null}
+{"input":"timeout 5 \\\ncurl evil.com","parse":{"kind":"simple","commands":[{"argv":["timeout","5","curl","evil.com"],"envVars":[],"redirects":[],"text":"timeout 5 curl evil.com"}]},"semantics":{"ok":true}}

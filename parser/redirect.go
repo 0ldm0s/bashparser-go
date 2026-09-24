@@ -47,8 +47,8 @@ func isRedirectLiteralStart(p *ParseState) bool {
 
 // tryParseRedirect 解析重定向操作符 + 目标（对齐 tryParseRedirect）。
 // greedy=true：file_redirect 按 grammar prec.left 贪心消费字面量
-//（`cmd >f a b c` 的 a b c 归重定向不归命令）；greedy=false
-//（preRedirect 语境）只取 1 个目标——command 的动态优先级压过
+// （`cmd >f a b c` 的 a b c 归重定向不归命令）；greedy=false
+// （preRedirect 语境）只取 1 个目标——command 的动态优先级压过
 // redirected_statement 的 prec(-1)
 func tryParseRedirect(p *ParseState, greedy bool) *TsNode {
 	save := saveLex(p.L)

@@ -1,9 +1,10 @@
 // tsbash-poc：bashParser.ts Go 全量 1:1 直译的互拍验证项目。
 //
 // 用法：
-//   go run . -mode ast -in fixtures/commands.jsonl -out fixtures/go-ast.jsonl
-//   （TS 侧：在 eva-cli 作用域内 tsx ts/dump.mjs 生成同名 ts-ast.jsonl）
-//   git diff --no-index 比对两侧——零差异为通过
+//
+//	go run . -mode ast -in fixtures/commands.jsonl -out fixtures/go-ast.jsonl
+//	（TS 侧：在 eva-cli 作用域内 tsx ts/dump.mjs 生成同名 ts-ast.jsonl）
+//	git diff --no-index 比对两侧——零差异为通过
 package main
 
 import (

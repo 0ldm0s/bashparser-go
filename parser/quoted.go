@@ -4,7 +4,7 @@ package parser
 
 // parseDoubleQuoted 双引号字符串（对齐 parseDoubleQuoted）。
 // 内含 $ 展开/反引号/转义；空白独占段按 tree-sitter extras 优先级省略
-//（`" ${x} "` → (string (expansion))——上游注释：有意偏离全保留语义，
+// （`" ${x} "` → (string (expansion))——上游注释：有意偏离全保留语义，
 // 依赖空白 string_content 的测试需更新 CCReconcile）
 func parseDoubleQuoted(p *ParseState) *TsNode {
 	qStart := p.L.b

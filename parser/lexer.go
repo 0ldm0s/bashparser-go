@@ -10,10 +10,10 @@ import "unicode/utf8"
 
 // lexer 词法状态
 type Lexer struct {
-	runes []rune
-	len   int
-	i     int // rune 索引
-	b     int // UTF-8 字节偏移
+	runes    []rune
+	len      int
+	i        int // rune 索引
+	b        int // UTF-8 字节偏移
 	heredocs []heredocPending
 	// byteTable rune 索引 → 字节偏移（懒构建，对齐上游 byteTable）
 	byteTable []int

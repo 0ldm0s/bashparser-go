@@ -29,7 +29,7 @@ type ParseState struct {
 	src        string
 	srcRunes   []rune
 	srcBytes   int
-	isAscii    bool   // 字节偏移 == rune 索引（无多字节 UTF-8）
+	isAscii    bool // 字节偏移 == rune 索引（无多字节 UTF-8）
 	nodeCount  int
 	deadline   time.Time
 	aborted    bool

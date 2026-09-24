@@ -5,9 +5,9 @@ package parser
 
 // parseExpansionRest 展开操作符后的剩余段（对齐 parseExpansionRest）。
 // 不 skipBlanks——`${var:- }` 的空格就是词本身。停在 } 或换行
-//（`${var:\n}` 不产出词）。stopAtSlash=true 时在 `/` 停（${var/pat/repl}
+// （`${var:\n}` 不产出词）。stopAtSlash=true 时在 `/` 停（${var/pat/repl}
 // 的 pat/repl 切分）。nodeType 'replword' 是 `/` `//` 替换段的 word 模式
-//——同 'word' 但 `(` 不解析为数组
+// ——同 'word' 但 `(` 不解析为数组
 func parseExpansionRest(p *ParseState, nodeType string, stopAtSlash bool) *TsNode {
 	start := p.L.b
 	// 值替换 RHS 以 `(` 开头解析为数组：${var:-(x)} →
