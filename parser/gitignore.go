@@ -59,34 +59,27 @@ func NewGitIgnoreMatcher(patterns []string) *GitIgnoreMatcher {
 }
 
 // Test 返回 (是否忽略, 命中规则下标, 命中模式原文)；无命中返回
-// (false, -1, "")。后模式覆盖前模式。原文供调用方回溯映射到
-// 更高层规则对象。
+// (false, -1, "")。
+//
+// 逐级判定语义（对齐 ignore v6 checkUnignored 的递归逐级）：对路径
+// 各前缀从浅到深跑「最后命中」——某级命中非取反 → 该级及其内部全部
+// 忽略（父目录被排除后内部取反无效，git 规范）；命中取反 → 该级未
+// 忽略继续下探。原文供调用方回溯映射到更高层规则对象。
 func (m *GitIgnoreMatcher) Test(relativePath string) (bool, int, string) {
-	lastHit := -1
-	ignored := false
-	for i, p := range m.patterns {
-		if p.re.MatchString(relativePath) ||
-			matchesAsDirectoryPrefix(p.re, relativePath) {
-			lastHit = i
-			ignored = !p.negate
-		}
-	}
-	if lastHit < 0 {
-		return false, -1, ""
-	}
-	return ignored, lastHit, m.patterns[lastHit].raw
-}
-
-// matchesAsDirectoryPrefix 路径的任一祖先目录命中模式（basename 型
-// `build` 匹配 `build/obj.o` 的祖先段——gitignore 语义）。
-func matchesAsDirectoryPrefix(re *regexp.Regexp, relativePath string) bool {
 	segments := strings.Split(relativePath, `/`)
-	for i := 1; i < len(segments); i++ {
-		if re.MatchString(strings.Join(segments[:i], `/`)) {
-			return true
+	for level := 1; level <= len(segments); level++ {
+		prefix := strings.Join(segments[:level], `/`)
+		lastHit := -1
+		for i, p := range m.patterns {
+			if p.re.MatchString(prefix) {
+				lastHit = i
+			}
+		}
+		if lastHit >= 0 && !m.patterns[lastHit].negate {
+			return true, lastHit, m.patterns[lastHit].raw
 		}
 	}
-	return false
+	return false, -1, ""
 }
 
 // gitignorePatternToRegex 模式 → 锚定正则（对齐 ignore v6 实测：
@@ -103,7 +96,9 @@ func gitignorePatternToRegex(pattern string) string {
 	}
 
 	if dirOnly {
-		// 尾 / 目录模式：仅匹配目录内部（不命中裸目录名）
+		// 尾 / 目录模式：仅匹配目录内部（dir/ 对裸名 dir 不忽略、
+		// 对 dir/f 忽略——ignore v6 实测；逐级判定下 target/keep 级
+		// 被 target/ 忽略后 keep 内部取反无效）
 		return `^` + pattern + `/.*$`
 	}
 	if !anchored {
