@@ -574,3 +574,106 @@ func ContainsHeredoc(command string) bool {
 	_, _, _, _, _, found := sqMatchHeredocStart(command, 0)
 	return found
 }
+
+// ── 守卫语义版起始匹配与闭合定位（v0.5.1）──
+//
+// 上游 programWriteGuard.ts 自带独立于 heredoc.ts 的 heredoc 检测
+// （HEREDOC_START_RE `<<-?\s*(['"]?)(\w+)\1[^\n]*\n` + stripHeredoc
+// Bodies 闭合行语义）——与 heredoc.ts 精确安全语义为上游固有双版
+//（执行面写意图检测 vs 安全面提取）。本组导出为守卫语义的直译，
+// 与私有 sqMatchHerdodocStart 并存属上游固有分层（非重复）。
+
+// MatchHeredocStart heredoc 起始匹配（守卫语义版，对齐
+// programWriteGuard.ts HEREDOC_START_RE——无 lookaround，反向引用
+// 手工化；\s* 为 JS 全集含换行按上游原样）。返回 (matchStart,
+// bodyStart, delimiter, ok)——bodyStart = 起始行换行符之后
+// （匹配消费 `[^\n]*\n`）。
+func MatchHeredocStart(s string, from int) (int, int, string, bool) {
+	for i := from; i+1 < len(s); {
+		if s[i] != '<' || s[i+1] != '<' {
+			next := strings.IndexByte(s[i+1:], '<')
+			if next < 0 {
+				return 0, 0, "", false
+			}
+			i = i + 1 + next
+			continue
+		}
+		pos := i + 2
+		if pos < len(s) && s[pos] == '-' {
+			pos++
+		}
+		// \s*（JS 全集，含换行——上游原样）
+		for pos < len(s) && IsJSSpace(rune(s[pos])) {
+			pos++
+		}
+		if pos >= len(s) {
+			return 0, 0, "", false
+		}
+		// (['"]?)(\w+)\1：引号可选且须配对（反向引用手工化）
+		quote := byte(0)
+		if s[pos] == '\'' || s[pos] == '"' {
+			quote = s[pos]
+			pos++
+		}
+		wordStart := pos
+		for pos < len(s) && sqIsWordChar(s[pos]) {
+			pos++
+		}
+		if pos == wordStart {
+			i++
+			continue // \w+ 为空
+		}
+		delim := s[wordStart:pos]
+		if quote != 0 {
+			if pos < len(s) && s[pos] == quote {
+				pos++
+			} else {
+				i++
+				continue // 配对引号未闭合
+			}
+		}
+		// [^\n]*\n：起始行余部 + 换行（无换行 = 无体，非本形态）
+		nl := strings.IndexByte(s[pos:], '\n')
+		if nl < 0 {
+			i++
+			continue
+		}
+		bodyStart := pos + nl + 1
+		return i, bodyStart, delim, true
+	}
+	return 0, 0, "", false
+}
+
+// FindHeredocCloseLine 在 bodyStart 起逐行找闭合标记行，返回体终点
+// （闭合行尾，排他）；-1 = 未找到。闭合语义对齐 programWriteGuard.ts
+// 的 closeRe `^[ \t]*DELIM[\s&|;)]*$`（m 模式；\s 为 JS 全集）。
+func FindHeredocCloseLine(s string, bodyStart int, delim string) int {
+	lines := strings.SplitAfter(s[bodyStart:], "\n")
+	offset := 0
+	for _, line := range lines {
+		lineEnd := len(line) // SplitAfter 保留 \n——行内容含尾换行
+		content := strings.TrimRight(line, "\n")
+		trimmed := strings.TrimLeft(content, " \t")
+		if strings.HasPrefix(trimmed, delim) {
+			tail := trimmed[len(delim):]
+			if sqGuardCloseTailOK(tail) {
+				return bodyStart + offset + lineEnd
+			}
+		}
+		offset += lineEnd
+	}
+	return -1
+}
+
+// sqGuardCloseTailOK 闭合行尾判定（[JS\s&|;)]* 到行尾——\s 走
+// jsspace 权威全集）
+func sqGuardCloseTailOK(tail string) bool {
+	for i := 0; i < len(tail); i++ {
+		c := rune(tail[i])
+		if !(c == '&' || c == '|' || c == ';' || c == ')' || c == '`' ||
+			IsJSSpace(c)) {
+			return false
+		}
+	}
+	return true
+}
