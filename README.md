@@ -17,6 +17,22 @@ bash 解析与安全分析 Go 库——eva-cli `utils/bash` 包（纯 TS bash �
 | treeSitterAnalysis.ts | 507 | tree_sitter_analysis*.go | `AnalyzeCommand`/`ExtractQuoteContext` 等 |
 | ParsedCommand.ts | 319 | parsed_command.go | `Parse`/`BuildParsedCommandFromRoot` |
 
+### v0.3.0+ 增补（上游消费语义面扩展）
+
+| 来源 | 本库对应 | 入口 |
+|---|---|---|
+| JS 引擎 \s 语义（对拍基础设施，v0.3.0） | jsspace.go | `JSSpace`/`JSSpaceNon`/`IsJSSpace`/`TrimJSSpace` |
+| npm shell-quote parse/quote（v0.5.0） | shellquote_parse.go / shellquote_quote.go | `ShellQuoteParse`/`ShellQuoteQuote`（`ParseToken`/`EnvFunc`） |
+| shellQuote.ts 包装壳（v0.5.0） | shellquote_wrap.go | `TryParseShellCommand`/`TryQuoteShellArgs`/`HasMalformedTokens`/`HasShellQuoteSingleQuoteBug`/`QuoteArgs` |
+| heredoc.ts 文本级预处理（v0.5.0） | heredoc_extract.go | `ExtractHeredocs`/`RestoreHeredocs`/`ContainsHeredoc` |
+| commands.ts 拆分族（v0.5.0） | commands_split.go | `SplitCommandWithOperators`/`SplitCommandDeprecated`/`FilterControlOperators`/`IsStaticRedirectTarget`/`IsCommandList`/`IsUnsafeCompoundCommandDeprecated` |
+| commands.ts 634-1340 重定向提取族（v0.5.0） | commands_redirect.go | `ExtractOutputRedirections`（`OutputRedirection`/`RedirectionsExtraction`） |
+
+v0.5.0 增补的消费方：eva-go `checkPathConstraints` 非 AST 回退分支
+（08 档裁定 regex 族不移植进 eva-go；2026-09-30 拍板由本库承载第三
+消费点兜底）。splitUnquoted/escape 选项为 eva-cli 调用面未用功能，
+不在直译语义面内。
+
 上游解析栈共三层：bashParser.ts（核心解析器，本库覆盖）→ parser.ts
 （外层封装，含 10000 字符输入长度门）→ ast.ts（安全判定）。tree-sitter
 原生模块的加载探测/功能门控在 Go 侧不存在——库静态链接恒可用。
